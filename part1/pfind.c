@@ -28,15 +28,48 @@ void matches_perm(char *filename, char * perm_string){
 	int perms[] = {S_IRUSR, S_IWUSR, S_IXUSR,
                S_IRGRP, S_IWGRP, S_IXGRP,
                S_IROTH, S_IWOTH, S_IXOTH};
+	
+	struct stat statbuf;
+    	
+	if (stat(filename, &statbuf) < 0) {
+        	fprintf(stderr, "Error: Cannot stat '%s'. %s.\n", filename,
+                strerror(errno));
+        	exit(EXIT_FAILURE);
+	}
 
+	if (!S_ISREG(statbuf.st_mode)) {
+     	  	fprintf(stderr, "Error: '%s' is not a regular file.\n", filename);
+        	exit(EXIT_FAILURE);
+    	}
+	
+	//creates permission string for that particualr file
+	char *file_perm;
+    	if ((file_perm = malloc(11 * sizeof(char))) == NULL) {
+        	fprintf(stderr, "Error: malloc failed. %s.\n",
+                strerror(errno));
+        	exit(EXIT_FAILURE);
+    	}
+    	for (int i = 0; i < 9; i += 3) {
+        	file_perm[i] = statbuf.st_mode & perms[i] ? 'r' : '-';
+        	file_perm[i + 1] = statbuf.st_mode & perms[i + 1] ? 'w' : '-';
+        	file_perm[i + 2] = statbuf.st_mode & perms[i + 2] ? 'x' : '-';
+    	}
+    	file_perm[9] = '\0'; 
+    
+	//printf("Entered: %s, File: %s \n", perm_string, file_perm);	
+	if(strcmp(perm_string, file_perm) == 0){ //PERMISSIONS MATCH
+		
+		printf("%s\n", filename);
+	}
 
+	free(file_perm);
 }
 
 int recurse_dir(char* directory, char * perm_string){
 
 	DIR *direct;
         if ((direct = opendir(directory)) == NULL) { //directory string should hold full path name
-                fprintf(stderr, "Error: Cannot open or find directory '%s'. %s.\n",
+                fprintf(stderr, "Error: Cannot stat '%s'. %s.\n",
                 directory, strerror(errno)); //checks if the directory exists
                 return EXIT_FAILURE;
         }
@@ -73,8 +106,8 @@ int recurse_dir(char* directory, char * perm_string){
 	if (S_ISDIR(sb.st_mode)) {
 	    	recurse_dir(file_path, perm_string); //RECURSIVE CALL
         } else {
-		//matches_perm(file_path, perm_string);
-		printf("%s [FILE]\n", file_path);
+		matches_perm(file_path, perm_string);
+		//printf("%s [FILE]\n", file_path);
         }
     }
 
@@ -112,8 +145,8 @@ int main(int argc, char **argv){
 		}			
 	}
 
-	printf("=======\n dlfag: %d, pflag: %d, hflag: %d \n", dflag, pflag, hflag);
-	printf("directory: %s, permission: %s\n=======\n", directory, perm);
+	//printf("=======\n dlfag: %d, pflag: %d, hflag: %d \n", dflag, pflag, hflag);
+	//printf("directory: %s, permission: %s\n=======\n", directory, perm);
 	
 	if(hflag == 1){
 		display_usage(1);

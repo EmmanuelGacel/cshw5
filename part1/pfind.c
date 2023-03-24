@@ -138,7 +138,7 @@ int main(int argc, char **argv){
 				hflag = 1;
 				break;
 			case '?':
-				fprintf(stderr,"Error: Unknown option '%c' received.\n", optopt);
+				fprintf(stderr,"Error: Unknown option '%c' received.\n", optopt); //Add '-'
 				return EXIT_FAILURE;
 			default:
 				return EXIT_FAILURE;

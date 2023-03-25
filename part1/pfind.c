@@ -104,10 +104,11 @@ int recurse_dir(char* directory, char * perm_string){
         }
         // Differentiate directories from other file types.
 	if (S_ISDIR(sb.st_mode)) {
+			printf("Recurse calls: '%s'\n", file_path);// REMOVE LATER
 	    	recurse_dir(file_path, perm_string); //RECURSIVE CALL
         } else {
 		matches_perm(file_path, perm_string);
-		//printf("%s [FILE]\n", file_path);
+		printf("%s [FILE]\n", file_path);
         }
     }
 

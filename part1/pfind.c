@@ -36,8 +36,7 @@ void matches_perm(char *filename, char * perm_string){
                 strerror(errno));
         	exit(EXIT_FAILURE);
 	}
-
-	if (!S_ISREG(statbuf.st_mode)) {
+	if (!S_ISREG(statbuf.st_mode) && !S_ISDIR(statbuf.st_mode)) {
      	  	fprintf(stderr, "Error: '%s' is not a regular file.\n", filename);
         	exit(EXIT_FAILURE);
     	}
@@ -104,11 +103,10 @@ int recurse_dir(char* directory, char * perm_string){
         }
         // Differentiate directories from other file types.
 	if (S_ISDIR(sb.st_mode)) {
-			printf("Recurse calls: '%s'\n", file_path);// REMOVE LATER
-	    	recurse_dir(file_path, perm_string); //RECURSIVE CALL
+	    	matches_perm(file_path, perm_string);
+		recurse_dir(file_path, perm_string); //RECURSIVE CALL
         } else {
 		matches_perm(file_path, perm_string);
-		printf("%s [FILE]\n", file_path);
         }
     }
 

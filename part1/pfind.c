@@ -93,7 +93,8 @@ int recurse_dir(char* directory, char * perm_string){
             strcmp(file->d_name, "..") == 0) {
             continue;
         }
-        // Add the current entry's name to the end of full_filename, following
+        
+	// Add the current entry's name to the end of full_filename, following
         // the trailing '/' and overwriting the '\0'.
         strncpy(file_path + length, file->d_name, PATH_MAX - length);
         if (lstat(file_path, &sb) < 0) {
@@ -109,6 +110,7 @@ int recurse_dir(char* directory, char * perm_string){
 		matches_perm(file_path, perm_string);
         }
     }
+	closedir(direct);
 
 	return EXIT_SUCCESS;
 }

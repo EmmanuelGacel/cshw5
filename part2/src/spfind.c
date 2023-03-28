@@ -15,22 +15,26 @@
 #include <sys/wait.h>
 #define BUFSIZE 128
 int main(int argc, char** argv){
-    
-    int pfind_to_sort[2], sort_to_parent[2];
+
+/*	
     //pipe(pfind_to_sort) &&  pipe(sort_to_parent);
-	/*
+
     if((pipe(pipefd)) == -1){
         fprintf(stderr,"Error: can't create pipe");
         return EXIT_FAILURE;
     }
-*/
-    pid_t child_1pid, child_2pid;
+
     //(child_1pid = fork()) && (child_2pid = fork()); //Creates two child processes
     //printf("Child 1 process %ld .\n",(long)child_1pid);
     //printf("Child 2 process %ld .\n",(long)child_2pid);
     //if ((child_1pid  || child_2pid ) < 0){
     //    fprintf(stderr, "Before fork error");
-    
+*/    
+	//int pfind_to_sort[2], sort_to_parent[2];
+	int pfind_to_sort[2] = {0}; // initializes both elements to 0
+	int sort_to_parent[2] = {0}; // initializes both elements to 0
+	pid_t child_1pid, child_2pid;
+
     if((child_1pid =fork()) <= 0){//Inside child 1
         if(child_1pid < 0){
             fprintf(stderr, "Fork error");
@@ -41,8 +45,8 @@ int main(int argc, char** argv){
         close(sort_to_parent[0]);
         close(sort_to_parent[1]);
         if (execv("pfind", argv) == -1){//Run pfind with argv as the input
-            printf("Error: execlp() failed. %s.\n", argv[2]);
-            //fprintf(stderr, "Error: pfind failed. %s.\n", strerror(errno));
+            //printf("Error: execlp() failed. %s.\n", argv[2]);
+            fprintf(stderr, "Error: pfind failed. %s.\n", strerror(errno));
             return EXIT_FAILURE;
         }
 	}
@@ -56,7 +60,7 @@ int main(int argc, char** argv){
         close(pfind_to_sort[0]);
         dup2(sort_to_parent[1],STDOUT_FILENO);
         close(sort_to_parent[0]);
-        close(sort_to_parent[0]);
+        close(sort_to_parent[1]);
         /*
         read(stdin, buf, sizeof(BUFSIZE));
         int fd = open("file", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);//
@@ -66,7 +70,7 @@ int main(int argc, char** argv){
         }
         */
 
-        if (execlp("sort", "sort", stdin, (char *) 0) == -1){
+        if (execlp("sort", "sort", "-u", NULL) == -1){
             printf("Error: sort failed. %s.\n", argv[2]);
             //fprintf(stderr, "Error: execlp() failed. %s.\n", strerror(errno));
             return EXIT_FAILURE;
@@ -99,7 +103,7 @@ int main(int argc, char** argv){
                 exit(EXIT_FAILURE);
             }
             if (WIFEXITED(status)) {
-                printf("Child process %ld exited, status=%d.1\n", (long)child_1pid,
+                printf("Child process %ld exited, status=%d.\n", (long)child_1pid,
                        WEXITSTATUS(status)); 
             } else if (WIFSIGNALED(status)) {
                 printf("Child process %ld killed by signal %d.\n", (long)child_1pid,

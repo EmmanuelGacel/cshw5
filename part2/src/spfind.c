@@ -15,22 +15,25 @@
 #include <sys/wait.h>
 #define BUFSIZE 128
 int main(int argc, char** argv){
+    
     int pfind_to_sort[2], sort_to_parent[2];
-    pipe(pfind_to_sort) &&  pipe(sort_to_parent);
-
+    //pipe(pfind_to_sort) &&  pipe(sort_to_parent);
+	/*
     if((pipe(pipefd)) == -1){
         fprintf(stderr,"Error: can't create pipe");
         return EXIT_FAILURE;
     }
+*/
     pid_t child_1pid, child_2pid;
-    (child_1pid = fork()) && (child_2pid = fork()); //Creates two child processes
+    //(child_1pid = fork()) && (child_2pid = fork()); //Creates two child processes
     //printf("Child 1 process %ld .\n",(long)child_1pid);
     //printf("Child 2 process %ld .\n",(long)child_2pid);
-    if ((child_1pid  || child_2pid ) < 0){
-        fprintf(stderr, "Before fork error");
-    }else if(child_1pid =fork() == 0){//Inside child 1
+    //if ((child_1pid  || child_2pid ) < 0){
+    //    fprintf(stderr, "Before fork error");
+    
+    if((child_1pid =fork()) <= 0){//Inside child 1
         if(child_1pid < 0){
-            fprintf(stder, "Fork error");
+            fprintf(stderr, "Fork error");
         }
         close(pfind_to_sort[0]);
         dup2(pfind_to_sort[1],STDOUT_FILENO);
@@ -42,13 +45,13 @@ int main(int argc, char** argv){
             //fprintf(stderr, "Error: pfind failed. %s.\n", strerror(errno));
             return EXIT_FAILURE;
         }
-    } else if(child_2pid =fork() == 0){//Inside child 2
-
+	}
+    if((child_2pid =fork()) <= 0){//Inside child 2
         if(child_2pid < 0){
-            fprintf(stder, "Fork error");
+            fprintf(stderr, "Fork error");
         }
-        char buf[BUFSIZE];
-        close(pfind_to_sort[1])
+        //char buf[BUFSIZE];
+        close(pfind_to_sort[1]);
         dup2(pfind_to_sort[0],STDIN_FILENO);
         close(pfind_to_sort[0]);
         dup2(sort_to_parent[1],STDOUT_FILENO);
@@ -68,9 +71,10 @@ int main(int argc, char** argv){
             //fprintf(stderr, "Error: execlp() failed. %s.\n", strerror(errno));
             return EXIT_FAILURE;
         }
-    }else{//Inside parent
+    }
+    //Inside parent
 
-        close(spfind_to_sort[0]);
+        close(pfind_to_sort[0]);
         close(pfind_to_sort[1]);
         dup2(sort_to_parent[0],STDIN_FILENO);
         close (sort_to_parent[0]);
@@ -126,6 +130,6 @@ int main(int argc, char** argv){
                 printf("Child process %ld continued.\n", (long)child_2pid);
             }
         }while (!WIFEXITED(status1) && !WIFSIGNALED(status1));
-    }
-    return EXIT_SUCCESS;
+	
+	return EXIT_SUCCESS;
 }

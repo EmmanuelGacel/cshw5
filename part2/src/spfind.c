@@ -1,8 +1,8 @@
 /*******************************************************************************
- * Name          :
- * Author        :
+ * Name          : spfind.c
+ * Author        : Emmanuel Gacel, Katherine Wimmer
  * Version       :
- * Date          :
+ * Date          :03/30/2023
  * Last Modified :
  * Description   : 
 *******************************************************************************/
@@ -55,71 +55,70 @@ int main(int argc, char** argv){
         close(sort_to_parent[1]);
        
         if (execlp("sort", "sort", NULL) == -1){
-            printf("Error: sort failed. %s.\n", argv[2]);
+            fprintf(stderr, "Error: sort failed. %s.\n", argv[2]);
             //fprintf(stderr, "Error: execlp() failed. %s.\n", strerror(errno));
             return EXIT_FAILURE;
         }
     }//Inside of parent
-        close(pfind_to_sort[0]);
-        close(pfind_to_sort[1]);
-        dup2(sort_to_parent[0],STDIN_FILENO);
-        close(sort_to_parent[0]);
-        close(sort_to_parent[1]);
-        
-        char buf[BUFSIZE];
-        int file_count = 0;
-        ssize_t count = read(STDIN_FILENO, buf, sizeof(buf) - 1);
-        if (count == -1){
-            perror("read()");
-            exit (EXIT_FAILURE);
-        }
-        buf[count] = '\0';
-        for (int i = 0; buf[i] != '\0'; i++ ){//Counts the number of files found
-            if (buf[i] == '\n') file_count ++;
-        }
-        printf("%s", buf);
-        printf("\nTotal matches: %d\n", file_count);
+    close(pfind_to_sort[0]);
+    close(pfind_to_sort[1]);
+    dup2(sort_to_parent[0],STDIN_FILENO);
+    close(sort_to_parent[0]);
+    close(sort_to_parent[1]);
+    
+    char buf[BUFSIZE];
+    int file_count = 0;
+    ssize_t count = read(STDIN_FILENO, buf, sizeof(buf) - 1);
+    if (count == -1){
+        perror("read()");
+        exit (EXIT_FAILURE);
+    }
+    buf[count] = '\0';
+    for (int i = 0; buf[i] != '\0'; i++ ){//Counts the number of files found
+        if (buf[i] == '\n') file_count ++;
+    }
+    
 
-        int status;
-        int status1;
-        do{//Wait for child 1 to finish
-            pid_t w = waitpid(child_1pid, &status, 0);//WUNTRACED  | WCONTINUED);
-            if (w == -1){//waitpid() failed
-                perror("waitpid()");
-                exit(EXIT_FAILURE);
-            }
-            if (WIFEXITED(status)) {
-                printf("Child process %ld exited, status=%d.\n", (long)child_1pid,
-                       WEXITSTATUS(status)); 
-            } else if (WIFSIGNALED(status)) {
-                printf("Child process %ld killed by signal %d.\n", (long)child_1pid,
-                       WTERMSIG(status));
-            } else if (WIFSTOPPED(status)) {
-                printf("Child process %ld stopped by signal %d.\n", (long)child_1pid,
-                       WSTOPSIG(status));
-            } else if (WIFCONTINUED(status)) {
-                printf("Child process %ld continued.\n", (long)child_1pid);
-            }
-        }while (!WIFEXITED(status) && !WIFSIGNALED(status));
-        do{//Wait fo child 2 to finish
-            pid_t w = waitpid(child_2pid, &status1, 0);//WUNTRACED| WCONTINUED);
-            if (w == -1){//waitpid() failed
-                perror("waitpid()");
-                exit(EXIT_FAILURE);
-            }
-            if (WIFEXITED(status1)) {
-                printf("Child process %ld exited, status=%d.\n", (long)child_2pid,
-                       WEXITSTATUS(status1));
-            } else if (WIFSIGNALED(status1)) {
-                printf("Child process %ld killed by signal %d.\n", (long)child_2pid,
-                       WTERMSIG(status1));
-            } else if (WIFSTOPPED(status1)) {
-                printf("Child process %ld stopped by signal %d.\n", (long)child_2pid,
-                       WSTOPSIG(status1));
-            } else if (WIFCONTINUED(status1)) {
-                printf("Child process %ld continued.\n", (long)child_2pid);
-            }
-        }while (!WIFEXITED(status1) && !WIFSIGNALED(status1));
-
+    int status;
+    int status1;
+    do{//Wait for child 1 to finish
+        pid_t w = waitpid(child_1pid, &status, 0);//WUNTRACED  | WCONTINUED);
+        if (w == -1){//waitpid() failed
+            perror("waitpid()");
+            exit(EXIT_FAILURE);
+        }
+        if (WIFSIGNALED(status)) {
+            printf("Child process %ld killed by signal %d.\n", (long)child_1pid,
+                    WTERMSIG(status));
+        } else if (WIFSTOPPED(status)) {
+            printf("Child process %ld stopped by signal %d.\n", (long)child_1pid,
+                    WSTOPSIG(status));
+        } else if (WIFCONTINUED(status)) {
+            printf("Child process %ld continued.\n", (long)child_1pid);
+        }
+    }while (!WIFEXITED(status) && !WIFSIGNALED(status));
+    do{//Wait fo child 2 to finish
+        pid_t w = waitpid(child_2pid, &status1, 0);//WUNTRACED| WCONTINUED);
+        if (w == -1){//waitpid() failed
+            perror("waitpid()");
+            exit(EXIT_FAILURE);
+        }
+        if (WIFSIGNALED(status1)) {
+            printf("Child process %ld killed by signal %d.\n", (long)child_2pid,
+                    WTERMSIG(status1));
+        } else if (WIFSTOPPED(status1)) {
+            printf("Child process %ld stopped by signal %d.\n", (long)child_2pid,
+                    WSTOPSIG(status1));
+        } else if (WIFCONTINUED(status1)) {
+            printf("Child process %ld continued.\n", (long)child_2pid);
+        }
+    }while (!WIFEXITED(status1) && !WIFSIGNALED(status1));
+    if (!WIFEXITED(status1) && !WIFSIGNALED(status1)){
+        fprintf(stderr, "Children failed to end properly");
+        return EXIT_FAILURE;
+    }else{
+        printf("%s", buf);//Print Results
+        printf("Total matches: %d\n", file_count);//Print total matches
+    }
 	return EXIT_SUCCESS;
 }

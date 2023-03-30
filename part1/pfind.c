@@ -2,7 +2,9 @@
  * Prints the files that match a given file
  * permission and prints them 
  *
- * Author: Katherine Wimmer krw2146
+ * Author: Katherine Wimmer and Emmanauel Gacel
+ * March 30, 2022
+ *
  * */
 
 #include <stdio.h>
@@ -31,29 +33,29 @@ void matches_perm(char *filename, char * perm_string){
 	
 	struct stat statbuf;
     	
-	if (stat(filename, &statbuf) < 0) {
+	if (stat(filename, &statbuf) < 0) { //stats the filename
         	fprintf(stderr, "Error: Cannot stat '%s'. %s.\n", filename,
                 strerror(errno));
         	exit(EXIT_FAILURE);
 	}
-	if (!S_ISREG(statbuf.st_mode) && !S_ISDIR(statbuf.st_mode)) {
+	if (!S_ISREG(statbuf.st_mode) && !S_ISDIR(statbuf.st_mode)) { //checks to make sure its a file or dir
      	  	fprintf(stderr, "Error: '%s' is not a regular file.\n", filename);
         	exit(EXIT_FAILURE);
     	}
 	
-	//creates permission string for that particualr file
+	//will hold the permissions for the file
 	char *file_perm;
-    	if ((file_perm = malloc(11 * sizeof(char))) == NULL) {
+    	if ((file_perm = malloc(11 * sizeof(char))) == NULL) { //saves space on heap
         	fprintf(stderr, "Error: malloc failed. %s.\n",
                 strerror(errno));
         	exit(EXIT_FAILURE);
     	}
-    	for (int i = 0; i < 9; i += 3) {
+    	for (int i = 0; i < 9; i += 3) { //creates the string
         	file_perm[i] = statbuf.st_mode & perms[i] ? 'r' : '-';
         	file_perm[i + 1] = statbuf.st_mode & perms[i + 1] ? 'w' : '-';
         	file_perm[i + 2] = statbuf.st_mode & perms[i + 2] ? 'x' : '-';
     	}
-    	file_perm[9] = '\0'; 
+    	file_perm[9] = '\0'; //null terminates
     
 	//printf("Entered: %s, File: %s \n", perm_string, file_perm);	
 	if(strcmp(perm_string, file_perm) == 0){ //PERMISSIONS MATCH
@@ -61,16 +63,16 @@ void matches_perm(char *filename, char * perm_string){
 		printf("%s\n", filename);
 	}
 
-	free(file_perm);
+	free(file_perm); //for malloc
 }
 
 int recurse_dir(char* directory, char * perm_string){
 
 	DIR *direct;
-        if ((direct = opendir(directory)) == NULL) { //directory string should hold full path name
+        if ((direct = opendir(directory)) == NULL) { //attempts to open the directory
                 fprintf(stderr, "Error: Cannot stat '%s'. %s.\n",
-                directory, strerror(errno)); //checks if the directory exists
-                return EXIT_FAILURE;
+                directory, strerror(errno)); //if it doesnt exist, or something else, it wont stat
+                exit(EXIT_FAILURE);
         }
 
 	char file_path[PATH_MAX + 1]; //extra space for the ending /	
@@ -82,13 +84,12 @@ int recurse_dir(char* directory, char * perm_string){
     	}
 
 	size_t length = strlen(file_path) + 1;
-    	file_path[length - 1] = '/';
-    	file_path[length] = '\0';
+    	file_path[length - 1] = '/'; //adds / to prepend next filename
+    	file_path[length] = '\0'; //null terminates
 
     	struct dirent *file;
     	struct stat sb;
-    	while ((file = readdir(direct)) != NULL) {
-        // Skip . and ..
+    	while ((file = readdir(direct)) != NULL) { //skips . and ..
         if (strcmp(file->d_name, ".") == 0 ||
             strcmp(file->d_name, "..") == 0) {
             continue;
@@ -96,6 +97,7 @@ int recurse_dir(char* directory, char * perm_string){
         
 	// Add the current entry's name to the end of full_filename, following
         // the trailing '/' and overwriting the '\0'.
+
         strncpy(file_path + length, file->d_name, PATH_MAX - length);
         if (lstat(file_path, &sb) < 0) {
             fprintf(stderr, "Error: Cannot stat file '%s'. %s.\n",
@@ -161,8 +163,10 @@ int main(int argc, char **argv){
 		return EXIT_FAILURE;
 	} else if(pflag == 0){
 		fprintf(stderr, "Error: Required argument -p <permissions string> not found.\n");
+		return EXIT_FAILURE;
 	}
 	
+	recurse_dir(directory, perm);	
 	
 	//check permission string
 	if(strlen(perm) != 9){
@@ -184,7 +188,7 @@ int main(int argc, char **argv){
 
 	//recurse directory
 	
-	recurse_dir(directory, perm); //goes to methods that perform the recursion
+	//recurse_dir(directory, perm); //goes to methods that perform the recursion
 	
 	return EXIT_SUCCESS;	
 }

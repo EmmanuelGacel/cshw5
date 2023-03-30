@@ -78,7 +78,7 @@ int main(int argc, char** argv){
             if (buf[i] == '\n') file_count ++;
         }
         printf("%s", buf);
-        printf("Total matches: %d\n", file_count);
+        printf("\nTotal matches: %d\n", file_count);
 
         int status;
         int status1;

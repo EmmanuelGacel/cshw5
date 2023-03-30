@@ -13,7 +13,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/wait.h>
-#define BUFSIZE 1024
+#define BUFSIZE 4096
 int main(int argc, char** argv){
 
 	int pfind_to_sort[2]; // initializes both elements to 0
